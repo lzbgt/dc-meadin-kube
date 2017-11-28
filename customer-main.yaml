@@ -1,0 +1,124 @@
+# dc-customermain cluster
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: customermain
+  labels:
+    app: customermain
+spec:
+  selector:
+    app: customermain
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30163
+  type: NodePort
+---
+apiVersion: v1
+data:
+  application-kube.properties: |-
+    server.port=80
+    spring.application.name=dc-customer-main
+    #########customermain#########
+    spring.redis.database=3
+    spring.redis.host=redis-master
+    spring.redis.password=dfws.2017
+    spring.redis.port=6379
+    spring.redis.pool.max-idle=8
+    spring.redis.expire=1800
+    spring.redis.timeout=10000
+    #########green-plum#########
+    spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    spring.datasource.url=jdbc:postgresql://external-greenplum:2345/md_cloud
+    spring.datasource.username=md_cloud
+    spring.datasource.password=md_cloud.2017
+    spring.datasource.initialSize=5
+    spring.datasource.minIdle=5
+    spring.datasource.maxActive=20
+    spring.datasource.maxWait=60000
+    spring.datasource.timeBetweenEvictionRunsMillis=3600000
+    #60000
+    spring.datasource.minEvictableIdleTimeMillis=18000000
+    #300000
+    spring.datasource.validationQuery=SELECT 1 FROM DUAL
+    spring.datasource.testWhileIdle=true
+    spring.datasource.testOnBorrow=false
+    spring.datasource.testOnReturn=false
+    spring.datasource.poolPreparedStatements=true
+    spring.datasource.maxPoolPreparedStatementPerConnectionSize=20
+    spring.datasource.filters=stat,wall,log4j
+    spring.datasource.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    #########eureka############
+    eureka.instance.preferIpAddress=true
+    eureka.client.registerWithEureka=true
+    eureka.client.serviceUrl.defaultZone=http://admin:123456@eureka-0.eureka:80/eureka/,http://admin:123456@eureka-1.eureka:80/eureka/,http://admin:123456@eureka-2.eureka:80/eureka/
+    ###########FREEMARKER (FreeMarkerAutoConfiguration)#############
+    spring.freemarker.allow-request-override=false
+    spring.freemarker.allow-session-override=false
+    spring.freemarker.cache=true
+    spring.freemarker.charset=UTF-8
+    spring.freemarker.check-template-location=true
+    spring.freemarker.content-type=text/html
+    spring.freemarker.enabled=true
+    spring.freemarker.expose-request-attributes=false
+    spring.freemarker.expose-session-attributes=false
+    spring.freemarker.expose-spring-macro-helpers=true
+    spring.freemarker.prefer-file-system-access=true
+    spring.freemarker.suffix=.html
+    spring.freemarker.settings.output_format=HTMLOutputFormat 
+    spring.freemarker.template-loader-path=classpath:/templates/
+    spring.freemarker.settings.template_update_delay=0
+    spring.freemarker.settings.default_encoding=UTF-8
+    spring.freemarker.settings.url_escaping_charset=UTF-8
+    spring.freemarker.settings.classic_compatible=true
+    spring.freemarker.settings.number_format=###
+    spring.freemarker.order=1
+    ###########mybatis#############
+    mybatis.config-location=classpath:mybatis-config.xml
+    mybatis.mapper-locations=classpath:com/meadin/main/mapping/*.xml
+    #TODO: change below seetings according deployment enviorments
+    ###########sso#############
+    sso.portrayal.page = http://rd.dfwsgroup.com:30164/index.html
+    sso.sentiment.page = http://rd.dfwsgroup.com:30165/index.html
+    ###########res#############
+    #cdn.cnd-link=https://rd.dfwsgroup.com
+    cdn.cnd-link=http://f3-md.veimg.cn/meadinyun/main
+    sso.login.page = http://rd.dfwsgroup.com
+    ###############logback################
+    logging.config=classpath:env/dev/logback.xml
+
+kind: ConfigMap
+metadata:
+  name: customermainconfig
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: customermain
+  labels:
+    app: customermain
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customermain
+  template:
+    metadata:
+      labels:
+        app: customermain
+    spec:
+      containers:
+      - name: customermain
+        image: node1:30400/dc-customer-main:v1
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: customermain-config
+          mountPath: /config
+      volumes:
+      - name: customermain-config
+        configMap:
+          name: customermainconfig

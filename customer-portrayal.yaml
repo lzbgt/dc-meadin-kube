@@ -1,0 +1,161 @@
+# dc-customerportrayal cluster
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: customerportrayal
+  labels:
+    app: customerportrayal
+spec:
+  selector:
+    app: customerportrayal
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30164
+  type: NodePort
+---
+apiVersion: v1
+data:
+  application-kube.properties: |-
+    server.port=80
+    spring.application.name=dc-customer-portrayal
+    #########redis############
+    spring.redis.database=3
+    spring.redis.host=redis-master
+    spring.redis.password=dfws.2017
+    spring.redis.port=6379
+    spring.redis.pool.max-idle=8
+    spring.redis.expire=1800
+    spring.redis.timeout=10000
+    #########eureka############
+    eureka.client.serviceUrl.defaultZone=eureka.client.serviceUrl.defaultZone=http://admin:123456@eureka-0.eureka:80/eureka/,http://admin:123456@eureka-1.eureka:80/eureka/,http://admin:123456@eureka-2.eureka:80/eureka/
+    #########greenplum#########
+    spring.datasource.zs.type=com.alibaba.druid.pool.DruidDataSource
+    spring.datasource.zs.driver-class-name=org.postgresql.Driver
+    spring.datasource.zs.url=jdbc:postgresql://external-greenplum:2345/md_cloud
+    spring.datasource.zs.username=md_cloud
+    spring.datasource.zs.password=md_cloud.2017
+    spring.datasource.zs.initialSize=5
+    spring.datasource.zs.minIdle=5
+    spring.datasource.zs.maxActive=20
+    spring.datasource.zs.maxWait=60000
+    spring.datasource.zs.timeBetweenEvictionRunsMillis=3600000
+    #60000
+    spring.datasource.zs.minEvictableIdleTimeMillis=18000000
+    #300000
+    spring.datasource.zs.validationQuery=SELECT 1 FROM DUAL
+    spring.datasource.zs.testWhileIdle=true
+    spring.datasource.zs.testOnBorrow=true
+    spring.datasource.zs.testOnReturn=true
+    spring.datasource.zs.poolPreparedStatements=true
+    spring.datasource.zs.maxPoolPreparedStatementPerConnectionSize=20
+    spring.datasource.zs.filters=log4j
+    spring.datasource.zs.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    #########mysql-(md_cms)#########
+    spring.datasource.meadin.type=com.alibaba.druid.pool.DruidDataSource
+    spring.datasource.meadin.driver-class-name=com.mysql.jdbc.Driver
+    spring.datasource.meadin.url=jdbc:mysql://192.168.50.46:3335/df_cms?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
+    spring.datasource.meadin.username=efon_data_232
+    spring.datasource.meadin.password=efoncnabc
+    spring.datasource.meadin.initialSize=5
+    spring.datasource.meadin.minIdle=5
+    spring.datasource.meadin.maxActive=20
+    spring.datasource.meadin.maxWait=60000
+    spring.datasource.meadin.timeBetweenEvictionRunsMillis=3600000
+    #60000
+    spring.datasource.meadin.minEvictableIdleTimeMillis=18000000
+    #300000
+    spring.datasource.meadin.validationQuery=SELECT 1 FROM DUAL
+    spring.datasource.meadin.testWhileIdle=true
+    spring.datasource.meadin.testOnBorrow=true
+    spring.datasource.meadin.testOnReturn=true
+    spring.datasource.meadin.poolPreparedStatements=true
+    spring.datasource.meadin.maxPoolPreparedStatementPerConnectionSize=20
+    spring.datasource.meadin.filters=stat,log4j
+    spring.datasource.meadin.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    #########mysql(brand_index)#########
+    spring.datasource.index.type=com.alibaba.druid.pool.DruidDataSource
+    spring.datasource.index.driver-class-name=com.mysql.jdbc.Driver
+    spring.datasource.index.url=jdbc:mysql://192.168.50.46:3335/brand_index?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
+    spring.datasource.index.username=efon_data_232
+    spring.datasource.index.password=efoncnabc
+    spring.datasource.index.initialSize=5
+    spring.datasource.index.minIdle=5
+    spring.datasource.index.maxActive=20
+    spring.datasource.index.maxWait=60000
+    spring.datasource.index.timeBetweenEvictionRunsMillis=3600000
+    #60000
+    spring.datasource.index.minEvictableIdleTimeMillis=18000000
+    #300000
+    spring.datasource.index.validationQuery=SELECT 1 FROM DUAL
+    spring.datasource.index.testWhileIdle=true
+    spring.datasource.index.testOnBorrow=true
+    spring.datasource.index.testOnReturn=true
+    spring.datasource.index.poolPreparedStatements=true
+    spring.datasource.index.maxPoolPreparedStatementPerConnectionSize=20
+    spring.datasource.index.filters=stat,log4j
+    spring.datasource.index.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    ###########FREEMARKER (FreeMarkerAutoConfiguration)#############
+    spring.freemarker.allow-request-override=false
+    spring.freemarker.allow-session-override=false
+    spring.freemarker.cache=true
+    spring.freemarker.charset=UTF-8
+    spring.freemarker.check-template-location=true
+    spring.freemarker.content-type=text/html
+    spring.freemarker.enabled=true
+    spring.freemarker.expose-request-attributes=false
+    spring.freemarker.expose-session-attributes=false
+    spring.freemarker.expose-spring-macro-helpers=true
+    spring.freemarker.prefer-file-system-access=true
+    spring.freemarker.suffix=.html
+    spring.freemarker.settings.output_format=HTMLOutputFormat 
+    spring.freemarker.template-loader-path=classpath:/templates/
+    spring.freemarker.settings.template_update_delay=0
+    spring.freemarker.settings.default_encoding=UTF-8
+    spring.freemarker.settings.url_escaping_charset=UTF-8
+    spring.freemarker.settings.classic_compatible=true
+    spring.freemarker.settings.number_format=###
+    spring.freemarker.order=1
+    ###########res#############
+    #cdn.cnd-link=http://rd.dfwsgroup.com:30164
+    cdn.cnd-link=http://f3-md.veimg.cn/meadinyun/portrayal
+    ###########mybatis#############
+    mybatis.config-location=classpath:mybatis-config.xml
+    mybatis.mapper-locations=classpath:com/meadin/portrayal/mapping/*.xml
+    sso.login.page = http://rd.dfwsgroup.com
+    ###############logback################
+    logging.config=classpath:env/prod/logback.xml
+kind: ConfigMap
+metadata:
+  name: customerportrayalconfig
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: customerportrayal
+  labels:
+    app: customerportrayal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customerportrayal
+  template:
+    metadata:
+      labels:
+        app: customerportrayal
+    spec:
+      containers:
+      - name: customerportrayal
+        image: node1:30400/dc-customer-portrayal:v1
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: customerportrayal-config
+          mountPath: /config
+      volumes:
+      - name: customerportrayal-config
+        configMap:
+          name: customerportrayalconfig

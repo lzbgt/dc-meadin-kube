@@ -1,0 +1,58 @@
+# dc-mongodb service cluster
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+spec:
+  selector:
+    app: mongodb
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+data:
+  application-kube.properties: |-
+    server.port=80
+    spring.application.name=dc-mongodb
+    #########eureka############
+    eureka.client.serviceUrl.defaultZone=http://admin:123456@eureka-0.eureka:80/eureka/,http://admin:123456@eureka-1.eureka:80/eureka/,http://admin:123456@eureka-2.eureka:80/eureka/
+    spring.data.mongodb.uri=mongodb://192.168.50.152:27017/md_cloud
+kind: ConfigMap
+metadata:
+  name: mongodbconfig
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: node1:30400/dc-mongodb:v1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: mongodb-config
+          mountPath: /config
+      volumes:
+      - name: mongodb-config
+        configMap:
+          name: mongodbconfig

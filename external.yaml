@@ -1,0 +1,31 @@
+# existing external services such as green-plum
+
+---
+# green-plum
+kind: Service
+apiVersion: v1
+metadata:
+  name: external-greenplum
+  labels:
+    app: external
+spec:
+  ports:
+  - name: greenplum
+    protocol: TCP
+    port: 2345
+    targetPort: 2345
+    #nodePort: 0
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: external-greenplum
+  labels:
+    app: external
+subsets: 
+  - addresses:
+    - ip: 192.168.50.191
+    ports:
+    - port: 2345 
+      name: greenplum
+---

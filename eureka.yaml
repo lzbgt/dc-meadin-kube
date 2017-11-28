@@ -1,0 +1,103 @@
+# kubernetes deployment configuration file
+
+# eureka cluster
+---
+apiVersion: v1
+data:
+  application-kube.properties: |-
+    spring.application.name=eureka-server
+    server.port=80
+    eureka.instance.hostname=${HOSTNAME}.eureka
+    #eureka.server.getWaitTimeInMsWhenSyncEmpty=5000
+    #eureka.instance.preferIpAddress=true
+    #eureka.client.fetch-registry=false
+    eureka.client.registerWithEureka=true
+    eureka.client.serviceUrl.defaultZone=http://admin:123456@eureka-0.eureka:80/eureka/,http://admin:123456@eureka-1.eureka:80/eureka/,http://admin:123456@eureka-2.eureka:80/eureka/
+    eureka.server.enableSelfPreservation=false
+    #eureka.server.eviction-interval-timer-in-ms=1000
+    security.basic.enabled=true
+    security.user.name=admin
+    security.user.password=123456
+kind: ConfigMap
+metadata:
+  name: eureka
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-ext
+  labels:
+    app: eureka
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30162
+    name: eureka
+  type: NodePort
+  selector:
+    app: eureka
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka
+  labels:
+    app: eureka
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    name: eureka
+  clusterIP: None
+  selector:
+    app: eureka
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: eureka
+spec:
+  selector:
+    matchLabels:
+      app: eureka
+  serviceName: "eureka"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: eureka
+        image: node1:30400/dc-eureka-server:v1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+        volumeMounts:
+        - name: appconfig
+          mountPath: /config
+      volumes:
+      - name: appconfig
+        configMap:
+          name: eureka
+#  volumeClaimTemplates:
+#  - metadata:
+#      name: xxx
+#    spec:
+#      accessModes: [ "ReadWriteMany" ]
+#      storageClassName: my-storage-class
+#      resources:
+#        requests:
+#          storage: 100MB
+---
+
+
