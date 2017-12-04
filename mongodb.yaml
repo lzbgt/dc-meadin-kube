@@ -22,7 +22,9 @@ data:
     spring.application.name=dc-mongodb
     #########eureka############
     eureka.client.serviceUrl.defaultZone=http://admin:123456@eureka-0.eureka:80/eureka/,http://admin:123456@eureka-1.eureka:80/eureka/,http://admin:123456@eureka-2.eureka:80/eureka/
-    spring.data.mongodb.uri=mongodb://192.168.50.152:27017/md_cloud
+    spring.data.mongodb.uri=mongodb://md:md.2017@192.168.50.152:27017/md_cloud
+    eureka.instance.preferIpAddress=true
+    eureka.client.registerWithEureka=true
 kind: ConfigMap
 metadata:
   name: mongodbconfig

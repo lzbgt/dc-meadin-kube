@@ -1,0 +1,83 @@
+# dc-solr service cluster
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: solr
+  labels:
+    app: solr
+spec:
+  selector:
+    app: solr
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+data:
+  application-kube.properties: |-
+    server.port=80
+    spring.application.name=dc-solr
+    #########eureka############
+    eureka.client.serviceUrl.defaultZone=http://admin:123456@eureka-0.eureka:80/eureka/,http://admin:123456@eureka-1.eureka:80/eureka/,http://admin:123456@eureka-2.eureka:80/eureka/
+    eureka.instance.preferIpAddress=true
+    eureka.client.registerWithEureka=true
+    logging.config=classpath:env/prod/logback.xml
+    solr.httpSolrClient=http://192.168.50.31:8983/solr/
+    #########greenplum#########
+    spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    spring.datasource.url=jdbc:postgresql://192.168.50.191:2345/md_cloud
+    spring.datasource.username=md_cloud
+    spring.datasource.password=md_cloud.2017
+    spring.datasource.initialSize=5
+    spring.datasource.minIdle=5
+    spring.datasource.maxActive=20
+    spring.datasource.maxWait=60000
+    spring.datasource.timeBetweenEvictionRunsMillis=3600000
+    #60000
+    spring.datasource.minEvictableIdleTimeMillis=18000000
+    #300000
+    spring.datasource.validationQuery=SELECT 1 FROM DUAL
+    spring.datasource.testWhileIdle=true
+    spring.datasource.testOnBorrow=true
+    spring.datasource.testOnReturn=true
+    spring.datasource.poolPreparedStatements=true
+    spring.datasource.maxPoolPreparedStatementPerConnectionSize=20
+    spring.datasource.filters=stat,wall,log4j
+    spring.datasource.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+kind: ConfigMap
+metadata:
+  name: solrconfig
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: solr
+  labels:
+    app: solr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solr
+  template:
+    metadata:
+      labels:
+        app: solr
+    spec:
+      containers:
+      - name: solr
+        image: node1:30400/dc-solr:v1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: solr-config
+          mountPath: /config
+      volumes:
+      - name: solr-config
+        configMap:
+          name: solrconfig
