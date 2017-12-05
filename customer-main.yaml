@@ -110,6 +110,10 @@ spec:
       labels:
         app: customermain
     spec:
+      initContainers:
+      - name: waitfor-eureka-redis
+        image: busybox
+        command: ['sh', '-c', 'for n in eureka-0.eureka redis-master; do until nslookup $n; do echo waiting for $n service up; sleep 2; done; done; ']
       containers:
       - name: customermain
         image: node1:30400/dc-customer-main:v1
