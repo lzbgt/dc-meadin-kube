@@ -13,8 +13,8 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-    nodePort: 30164
-  type: NodePort
+    #nodePort: 30164
+  #type: NodePort
 ---
 apiVersion: v1
 data:
@@ -119,12 +119,12 @@ data:
     spring.freemarker.settings.number_format=###
     spring.freemarker.order=1
     ###########res#############
-    #cdn.cnd-link=http://rd.dfwsgroup.com:30164
-    cdn.cnd-link=http://f3-md.veimg.cn/meadinyun/portrayal
+    #cdn.cnd-link=https://dc-portrayal.wizhorn.com
+    cdn.cnd-link=https://f3-md.veimg.cn/meadinyun/portrayal
     ###########mybatis#############
     mybatis.config-location=classpath:mybatis-config.xml
     mybatis.mapper-locations=classpath:com/meadin/portrayal/mapping/*.xml
-    sso.login.page = http://rd.dfwsgroup.com
+    sso.login.page = https://dc-main.wizhorn.com
     ###############logback################
     logging.config=classpath:env/prod/logback.xml
 kind: ConfigMap
@@ -159,3 +159,24 @@ spec:
       - name: customerportrayal-config
         configMap:
           name: customerportrayalconfig
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dc-portrayal
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - dc-portrayal.wizhorn.com
+    secretName: dc-portrayal-tls
+  rules:
+  - host: dc-portrayal.wizhorn.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: customerportrayal
+          servicePort: 80

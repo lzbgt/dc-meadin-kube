@@ -13,8 +13,8 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-    nodePort: 30163
-  type: NodePort
+    #nodePort: 30163
+  #type: NodePort
 ---
 apiVersion: v1
 data:
@@ -81,12 +81,12 @@ data:
     mybatis.mapper-locations=classpath:com/meadin/main/mapping/*.xml
     #TODO: change below seetings according deployment enviorments
     ###########sso#############
-    sso.portrayal.page = http://rd.dfwsgroup.com:30164/index.html
-    sso.sentiment.page = http://rd.dfwsgroup.com:30165/index.html
+    sso.portrayal.page = https://dc-portrayal.wizhorn.com/index.html
+    sso.sentiment.page = https://dc-sentiment.wizhorn.com/index.html
     ###########res#############
-    #cdn.cnd-link=https://rd.dfwsgroup.com
-    cdn.cnd-link=http://f3-md.veimg.cn/meadinyun/main
-    sso.login.page = http://rd.dfwsgroup.com
+    #cdn.cnd-link=https:/dc-main.wizhorn.com
+    cdn.cnd-link=https://f3-md.veimg.cn/meadinyun/main
+    sso.login.page = https://dc-main.wizhorn.com
     ###############logback################
     logging.config=classpath:env/dev/logback.xml
 
@@ -126,3 +126,24 @@ spec:
       - name: customermain-config
         configMap:
           name: customermainconfig
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dc-main
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - dc-main.wizhorn.com
+    secretName: dc-main-tls
+  rules:
+  - host: dc-main.wizhorn.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: customermain
+          servicePort: 80

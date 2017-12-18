@@ -13,8 +13,8 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-    nodePort: 30165
-  type: NodePort
+    #nodePort: 30165
+  #type: NodePort
 ---
 apiVersion: v1
 data:
@@ -119,14 +119,14 @@ data:
     spring.freemarker.settings.number_format=###
     spring.freemarker.order=1
     ###########res#############
-    cdn.cnd-link=http://f3-md.veimg.cn/meadinyun/sentiment
+    cdn.cnd-link=https://f3-md.veimg.cn/meadinyun/sentiment
     ###########mybatis#############
     mybatis.config-location=classpath:mybatis-config.xml
     mybatis.mapper-locations=classpath:com/meadin/sentiment/mapping/*.xml
     ######url#######
-    sso.login.page = http://rd.dfwsgroup.com
-    sso.portrayal.page = https://rd.dfwsgroup.com:30164
-    sso.sentiment.page = https://rd.dfwsgroup.com:30165
+    sso.login.page = https://dc-main.wizhorn.com
+    sso.portrayal.page = https://dc-portrayal.wizhorn.com
+    sso.sentiment.page = https://dc-sentiment.wizhorn.com
     ###############logback################
     logging.config=classpath:env/prod/logback.xml
 kind: ConfigMap
@@ -161,3 +161,24 @@ spec:
       - name: customersentiment-config
         configMap:
           name: customersentimentconfig
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dc-sentiment
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - dc-sentiment.wizhorn.com
+    secretName: dc-sentiment-tls
+  rules:
+  - host: dc-sentiment.wizhorn.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: customersentiment
+          servicePort: 80
